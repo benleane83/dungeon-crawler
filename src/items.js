@@ -843,6 +843,17 @@ export function getWeaponRange(entity) {
  * @param {{ type: string }} action
  */
 function handlePlayerAction(gameState, action) {
+  if (action.type === 'use_item') {
+    const player = gameState.player;
+    if (!player || !player.alive) return;
+    const { itemId } = action.payload ?? {};
+    if (!itemId) return;
+    const slot = getEquipSlot(player.inventory.find(i => i.id === itemId) ?? {});
+    const result = slot ? equipItem(player, itemId) : useItem(player, itemId, gameState);
+    gameState.addLog(result.message);
+    return;
+  }
+
   if (action.type !== 'pickup') return;
 
   const player = gameState.player;

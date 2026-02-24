@@ -16,6 +16,14 @@ import {
   CLASS_TYPES, ENTITY_TYPES, MAX_FLOORS,
 } from './constants.js';
 
+/** Display label for an item — mirrors items.js getDisplayName without the circular import. */
+function itemLabel(item) {
+  if (!item.identified && item.unidentifiedName) return item.unidentifiedName;
+  const prefixes = { uncommon: 'Fine', rare: 'Superior', legendary: 'Legendary' };
+  const prefix = prefixes[item.rarity];
+  return prefix ? `${prefix} ${item.name}` : item.name;
+}
+
 // ── Singleton game state ─────────────────────────────────────────────────────
 
 /** @type {GameState} */
@@ -84,6 +92,9 @@ function fireHooks(event, ...args) {
 /** @type {PlayerAction|null} Pending action from input */
 let pendingAction = null;
 
+/** Allow renderer / UI modules to dispatch an action without a circular import. */
+export function queueAction(action) { pendingAction = action; }
+
 /** Direction key mappings → {dx, dy} */
 const KEY_MAP = Object.freeze({
   ArrowUp:    { dx:  0, dy: -1 },
@@ -122,6 +133,20 @@ function handleKeyDown(e) {
     case '<': // Ascend stairs
       pendingAction = { type: 'stairs', payload: { direction: 'up' } };
       break;
+    case 'Enter': { // Use stairs (auto-detect direction)
+      const floor = state.dungeonFloor;
+      const p = state.player;
+      if (floor && p) {
+        const sd = floor.stairsDown;
+        const su = floor.stairsUp;
+        if (sd && p.pos.x === sd.x && p.pos.y === sd.y) {
+          pendingAction = { type: 'stairs', payload: { direction: 'down' } };
+        } else if (su && p.pos.x === su.x && p.pos.y === su.y) {
+          pendingAction = { type: 'stairs', payload: { direction: 'up' } };
+        }
+      }
+      break;
+    }
     case '1': case '2': case '3':
       pendingAction = { type: 'ability', payload: { index: Number(e.key) - 1 } };
       break;
@@ -147,6 +172,31 @@ function updateHUD() {
   setText('hud-sp', `${p.stamina}/${p.maxStamina}`);
   setText('hud-level', p.level);
   setText('hud-score', p.score);
+
+  // Sidebar inventory list
+  const invEl = document.getElementById('inventory-list');
+  if (invEl) {
+    if (p.inventory.length === 0) {
+      invEl.innerHTML = '<p style="color:#666">(empty)</p>';
+    } else {
+      invEl.innerHTML = p.inventory
+        .map(item => `<p>${itemLabel(item)}</p>`)
+        .join('');
+    }
+  }
+
+  // Sidebar equipment list
+  const eqEl = document.getElementById('equipment-list');
+  if (eqEl) {
+    const slots = Object.entries(p.equipment).filter(([, item]) => item != null);
+    if (slots.length === 0) {
+      eqEl.innerHTML = '<p style="color:#666">(nothing equipped)</p>';
+    } else {
+      eqEl.innerHTML = slots
+        .map(([slot, item]) => `<p><span style="color:#888">${slot}:</span> ${itemLabel(item)}</p>`)
+        .join('');
+    }
+  }
 }
 
 function updateLog() {
@@ -165,6 +215,47 @@ function processTurn() {
 
   const action = pendingAction;
   pendingAction = null;
+
+  // Handle stairs before delegating to combat hooks
+  if (action.type === 'stairs') {
+    const player = state.player;
+    const floor = state.dungeonFloor;
+    if (player && floor) {
+      const { x, y } = player.pos;
+      if (action.payload.direction === 'down') {
+        const stairs = floor.stairsDown;
+        if (stairs && x === stairs.x && y === stairs.y) {
+          if (state.currentFloor >= MAX_FLOORS) {
+            state.addLog('You have reached the deepest level.');
+          } else {
+            state.addLog(`You descend to floor ${state.currentFloor + 1}.`);
+            changeFloor(state.currentFloor + 1);
+            // Place player at the up-stairs of the new floor
+            const newStairs = state.dungeonFloor.stairsUp;
+            if (newStairs) { player.pos.x = newStairs.x; player.pos.y = newStairs.y; }
+          }
+        } else {
+          state.addLog("You aren't standing on stairs down.");
+        }
+      } else {
+        const stairs = floor.stairsUp;
+        if (stairs && x === stairs.x && y === stairs.y) {
+          if (state.currentFloor <= 1) {
+            state.addLog('You are already on the first floor.');
+          } else {
+            state.addLog(`You ascend to floor ${state.currentFloor - 1}.`);
+            changeFloor(state.currentFloor - 1);
+            // Place player at the down-stairs of the previous floor
+            const newStairs = state.dungeonFloor.stairsDown;
+            if (newStairs) { player.pos.x = newStairs.x; player.pos.y = newStairs.y; }
+          }
+        } else {
+          state.addLog("You aren't standing on stairs up.");
+        }
+      }
+    }
+    return; // Stairs don't consume a combat turn
+  }
 
   // 1. Player action
   state.turnPhase = TURN_PHASES.PLAYER_ACTION;

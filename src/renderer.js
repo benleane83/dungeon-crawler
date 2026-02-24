@@ -9,7 +9,7 @@ import {
   TILE_COLORS, TILE_TYPES, ENTITY_COLORS, ENTITY_TYPES,
   ENEMY_TYPES, CLASS_TYPES, ITEM_TYPES,
 } from './constants.js';
-import { registerHook, getState } from './game.js';
+import { registerHook, getState, queueAction } from './game.js';
 
 // ── State ────────────────────────────────────────────────────────────────────
 
@@ -28,6 +28,9 @@ const flashes = [];
 
 /** Whether inventory panel is open */
 let inventoryOpen = false;
+
+// Attach UI key handler at module load — do not wait for initRenderer
+document.addEventListener('keydown', handleRendererKey);
 
 /** Whether help overlay is open */
 let helpOpen = false;
@@ -834,14 +837,23 @@ function renderInventory(state) {
   if (p.inventory.length === 0) {
     ctx.fillText('(empty)', panelX + 16, y);
   } else {
-    for (const item of p.inventory) {
-      if (y > panelY + panelH - 16) {
+    const letters = 'abcdefghijklmnopqrstuvwxyz';
+    for (let i = 0; i < p.inventory.length; i++) {
+      const item = p.inventory[i];
+      if (y > panelY + panelH - 28) {
         ctx.fillText('...', panelX + 16, y);
         break;
       }
-      ctx.fillText(`• ${item.name} [${item.rarity}]`, panelX + 16, y);
+      ctx.fillStyle = '#4ea8de';
+      ctx.fillText(`${letters[i]})`, panelX + 16, y);
+      ctx.fillStyle = '#aaa';
+      ctx.fillText(`${item.name} [${item.rarity}]`, panelX + 44, y);
       y += 14;
     }
+    y += 8;
+    ctx.fillStyle = '#555';
+    ctx.font = '10px Courier New';
+    ctx.fillText('press letter to equip / use', panelX + 16, y);
   }
 }
 
@@ -903,9 +915,20 @@ function renderHelp() {
 function handleRendererKey(e) {
   if (e.key === 'i' || e.key === 'I') {
     inventoryOpen = !inventoryOpen;
+    return;
   }
   if (e.key === '?') {
     helpOpen = !helpOpen;
+    return;
+  }
+  // Item selection: a–z when inventory is open
+  if (inventoryOpen && e.key.length === 1 && e.key >= 'a' && e.key <= 'z') {
+    const index = e.key.charCodeAt(0) - 97;
+    const item = getState()?.player?.inventory[index];
+    if (item) {
+      queueAction({ type: 'use_item', payload: { itemId: item.id } });
+      inventoryOpen = false;
+    }
   }
 }
 
@@ -919,7 +942,6 @@ function handleRendererKey(e) {
 export function initRenderer(canvasEl, gameState) {
   canvas = canvasEl;
   ctx = canvas.getContext('2d');
-  document.addEventListener('keydown', handleRendererKey);
 }
 
 /**

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dungeon Crawler</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    #header {
+      padding: 8px 16px;
+      display: flex;
+      gap: 24px;
+      font-size: 14px;
+      background: #16213e;
+      width: 100%;
+      justify-content: center;
+    }
+    #header span { white-space: nowrap; }
+    #game-container {
+      display: flex;
+      gap: 16px;
+      padding: 16px;
+      align-items: flex-start;
+    }
+    #game-canvas {
+      border: 2px solid #0f3460;
+      background: #000;
+      image-rendering: pixelated;
+    }
+    #sidebar {
+      width: 240px;
+      background: #16213e;
+      border: 2px solid #0f3460;
+      padding: 12px;
+      font-size: 13px;
+      min-height: 400px;
+    }
+    #sidebar h3 { color: #e94560; margin-bottom: 8px; }
+    #log {
+      width: 100%;
+      max-width: 800px;
+      background: #16213e;
+      border: 2px solid #0f3460;
+      padding: 8px 12px;
+      height: 120px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+    #log p { margin: 2px 0; }
+    .stat-label { color: #888; }
+    .hp { color: #e94560; }
+    .mp { color: #4ea8de; }
+    .sp { color: #f0c040; }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <span>Floor: <strong id="hud-floor">1</strong></span>
+    <span>HP: <strong id="hud-hp" class="hp">100/100</strong></span>
+    <span>MP: <strong id="hud-mp" class="mp">50/50</strong></span>
+    <span>SP: <strong id="hud-sp" class="sp">30/30</strong></span>
+    <span>Level: <strong id="hud-level">1</strong></span>
+    <span>Score: <strong id="hud-score">0</strong></span>
+  </div>
+
+  <div id="game-container">
+    <canvas id="game-canvas" width="800" height="600"></canvas>
+    <div id="sidebar">
+      <h3>Inventory</h3>
+      <div id="inventory-list"></div>
+      <h3 style="margin-top:12px">Equipment</h3>
+      <div id="equipment-list"></div>
+    </div>
+  </div>
+
+  <div id="log">
+    <p>Welcome to the dungeon. Prepare yourself.</p>
+  </div>
+
+  <script type="module" src="src/game.js"></script>
+</body>
+</html>
