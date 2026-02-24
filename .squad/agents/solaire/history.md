@@ -47,9 +47,18 @@ All modules now depend on shared data model from Solaire:
 
 **Cross-module integration points:**
 - Dungeon sets `tile._spawns` → Combat/Items read `tile._enemySpawn`/`tile._itemSpawn` to create instances
-- Combat calls `generateLootDrop()` from Items on enemy death
+- Combat calls `generateLootDrop()` from Items on enemy death with full loot table
 - Renderer calls `getDisplayName()` from Items to respect identification state
 - All modules use `registerHook()` from game.js to fire in deterministic phase order
+- Items module must be loaded in game.js Promise.all and call `registerHook('playerAction', ...)` to register pickup handler
+
+### 2026-02-24 — Pickup and Items Integration
+
+**From Griggs (items):**
+- items.js now loaded in game.js `Promise.all` specialist imports
+- `playerAction` hook handles pickup dispatch — iterates tile.itemIds and calls pickupItem()
+- Combat loot drops now use full `generateLootDrop()` system instead of hardcoded pools
+- Common pitfall documented: module must be in game.js Promise.all AND call registerHook
 
 ### 2026-02-24 — Pixel-Art Sprite System Integration
 

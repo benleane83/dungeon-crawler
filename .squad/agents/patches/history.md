@@ -19,10 +19,18 @@
 **Cross-agent dependencies:**
 - Dungeon (Siegmeyer) reads enemy pool from `ENEMY_TEMPLATES`; Patches creates Entity instances with these templates + `FLOOR_DIFFICULTY` scaling
 - Items (Griggs) mutates Entity.attack/defense on equip/unequip; Patches uses `getTotalEquippedAttack()` for damage formulas
-- Griggs calls `generateLootDrop()` on enemy death (40% health potion base rate)
+- Griggs calls `generateLootDrop()` on enemy death with full loot table (rarity scaling, enemy-type drop chances, guaranteed legendaries from floor 10 bosses)
 - Laurentius (renderer) displays HP bars for damaged enemies via Entity.hp < Entity.maxHp
 
 **Turn order:** Game loop fires `playerAction` → `enemyAction` → `statusTick` → `computeFov` → `render`. This ensures all state mutations complete before visibility/UI update.
+
+### 2026-02-24 — Loot Table Integration
+
+**From Griggs (items):**
+- `combat.js` now calls `generateLootDrop(floor, enemyType)` from items.js instead of hardcoded loot
+- Enemy drops now scale by floor, include rarity tiers, and vary by enemy type
+- Strong enemies drop double loot; floor 10 bosses drop guaranteed legendary
+- No breaking changes to combat calculations or turn order
 
 ### 2026-02-24 — Pixel-Art Sprite System Integration
 

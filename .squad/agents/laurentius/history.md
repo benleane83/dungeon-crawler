@@ -49,3 +49,10 @@
 - Rat: small quadruped with ears and tail in brown
 - Slime: blob shape with highlights in teal
 - Dark Mage: dark hooded figure with glowing purple staff and eyes
+
+### 2026-02-24 — Help Overlay Implementation
+
+- Help overlay follows exact same pattern as inventory panel: `helpOpen` boolean state, `?` key in `handleRendererKey`, `renderHelp()` called from `render()` after `renderInventory`
+- All renderer-owned UI overlays (inventory, help) are toggled via `handleRendererKey` — no changes to game.js needed
+- Panel styling: `rgba(22, 33, 62, 0.95)` background, `#0f3460` border, `#e94560` header, `#FFD700` section headers, `#4ea8de` key labels, `#aaa` descriptions — matches inventory panel aesthetic
+- Keybinding list is data-driven (array of `[key, description]` pairs) for easy future extension
