@@ -247,3 +247,68 @@ Helper functions simulate game logic (damage calculation, FOV raycasting, loot g
 - Contract tests may drift from actual implementations. Mitigated by testing against the shared data model constants.
 
 ---
+
+## Decision: Pixel-Art Sprite System
+
+**Author:** Laurentius (Renderer Dev)  
+**Date:** 2026-02-24  
+**Status:** Implemented
+
+### Context
+
+The original entity rendering used simple colored inset squares (24×24 fillRect calls) to represent player and enemy entities. This was functional but lacked visual appeal and made it difficult to distinguish between different entity types at a glance.
+
+### Decision
+
+Replaced all entity rendering with hand-crafted pixel-art style sprites drawn entirely using Canvas 2D API primitives (fillRect, arc, lineTo, etc.). No external image assets are used.
+
+### Implementation Details
+
+**Sprite Functions:**
+- Each entity type (3 player classes + 8 enemy types) has a dedicated sprite drawing function
+- All sprites fit within the existing 4px inset boundary (~24×24 drawing area)
+- Functions receive pixel coordinates and draw relative to a center point
+- Use existing PLAYER_COLORS and ENTITY_COLORS as base palette
+
+**Player Sprites:**
+- **Warrior:** Armored figure with helmet, sword, shield in red/silver (#e94560, #c0c0c0)
+- **Mage:** Robed figure with pointed hat and glowing staff in blue (#4ea8de)
+- **Rogue:** Hooded cloaked figure with dagger in green (#50fa7b)
+
+**Enemy Sprites:**
+- **Skeleton:** Skull, spine, ribs, bone structure (white/gray #eee, #ddd)
+- **Goblin:** Large head with ears, small body, yellow eyes (green #66cc33)
+- **Orc:** Broad bulky figure with tusks (brown/green #8a9a5a, #6a5a3a)
+- **Wraith:** Floating wispy ghost with glowing eyes (purple #9966ff with transparency)
+- **Dragon:** Large creature with wings, horns, tail (red/orange #ff3333, #cc5533)
+- **Rat:** Small quadruped with ears and tail (brown #8b6f47)
+- **Slime:** Blob shape with shine highlights (teal #33cc99)
+- **Dark Mage:** Dark hooded figure with glowing purple staff (purple #660066, #cc33ff)
+
+### Compatibility
+
+- HP bars remain unchanged (thin red bar above damaged enemies)
+- Damage flash system continues to work (overlays flash effect on tile)
+- All existing tests pass without modification
+- Performance is excellent — no need for sprite caching at current entity counts
+
+### Rationale
+
+- **Visual clarity:** Each entity type is now immediately recognizable
+- **No assets needed:** Entirely procedural, fits project's zero-dependency philosophy
+- **Maintainable:** Simple drawing code, easy to adjust or add new sprites
+- **Performance:** Canvas primitives are fast; no texture loading or memory overhead
+
+### Impact
+
+- **Patches (combat):** No changes needed — sprite rendering is transparent to combat system
+- **Siegmeyer (dungeon):** No changes needed — enemy types already defined in constants
+- **Griggs (items):** No changes needed — sprite system doesn't affect items
+- **Players:** Greatly improved visual experience, easier to identify threats
+
+### Risks
+
+- Sprites are 24×24 pixels — detail is limited, but appropriate for roguelike aesthetic
+- Adding new enemy types requires creating a new sprite function (minimal effort)
+
+---

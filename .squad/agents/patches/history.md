@@ -23,3 +23,13 @@
 - Laurentius (renderer) displays HP bars for damaged enemies via Entity.hp < Entity.maxHp
 
 **Turn order:** Game loop fires `playerAction` → `enemyAction` → `statusTick` → `computeFov` → `render`. This ensures all state mutations complete before visibility/UI update.
+
+### 2026-02-24 — Pixel-Art Sprite System Integration
+
+**From Laurentius (renderer):**
+- All entity rendering now uses procedural pixel-art sprites instead of colored squares
+- Each entity type has a unique visual signature (3 player classes, 8 enemy types)
+- Sprites use Canvas 2D primitives and existing PLAYER_COLORS/ENTITY_COLORS palettes
+- HP bars and damage flash remain compatible with new sprite system
+- No breaking changes to combat system — sprite rendering is transparent to combat calculations
+

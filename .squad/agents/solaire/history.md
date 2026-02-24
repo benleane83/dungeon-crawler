@@ -36,8 +36,27 @@ All modules now depend on shared data model from Solaire:
 - **Renderer** (Laurentius) reads tile visibility/explored flags set by FOV, displays identified names via items.js
 - **Test suite** (Sieglinde) validates contracts across all systems; all 137 tests passing
 
+### 2026-02-24 — Integration Summary
+
+All modules now depend on shared data model from Solaire:
+- **Combat system** (Patches) calls items.js for loot drops
+- **Dungeon generator** (Siegmeyer) reads spawn markers, other modules create entities from them
+- **Items system** (Griggs) equipment bonuses mutate Entity stats directly; identification persists module-scoped
+- **Renderer** (Laurentius) reads tile visibility/explored flags set by FOV, displays identified names via items.js
+- **Test suite** (Sieglinde) validates contracts across all systems; all 137 tests passing
+
 **Cross-module integration points:**
 - Dungeon sets `tile._spawns` → Combat/Items read `tile._enemySpawn`/`tile._itemSpawn` to create instances
 - Combat calls `generateLootDrop()` from Items on enemy death
 - Renderer calls `getDisplayName()` from Items to respect identification state
 - All modules use `registerHook()` from game.js to fire in deterministic phase order
+
+### 2026-02-24 — Pixel-Art Sprite System Integration
+
+**From Laurentius (renderer):**
+- All entity rendering now uses procedural pixel-art sprites instead of colored squares
+- Each entity type has a unique visual signature (3 player classes, 8 enemy types)
+- Sprites use Canvas 2D primitives and existing PLAYER_COLORS/ENTITY_COLORS palettes
+- HP bars and damage flash remain compatible with new sprite system
+- No changes needed to data model or integration points — rendering layer only
+
