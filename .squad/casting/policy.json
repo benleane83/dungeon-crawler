@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "universes_allowed": ["dark-souls"],
+  "max_capacity": 10,
+  "overflow_strategy": "diegetic-expansion"
+}
