@@ -29,6 +29,9 @@ const flashes = [];
 /** Whether inventory panel is open */
 let inventoryOpen = false;
 
+/** Whether help overlay is open */
+let helpOpen = false;
+
 // ── Player colors by class ───────────────────────────────────────────────────
 
 const PLAYER_COLORS = {
@@ -842,11 +845,67 @@ function renderInventory(state) {
   }
 }
 
+// ── Help overlay ─────────────────────────────────────────────────────────────
+
+function renderHelp() {
+  if (!helpOpen) return;
+
+  const panelW = 320;
+  const panelH = 310;
+  const panelX = Math.floor((canvas.width - panelW) / 2);
+  const panelY = Math.floor((canvas.height - panelH) / 2);
+
+  // Panel background
+  ctx.fillStyle = 'rgba(22, 33, 62, 0.95)';
+  ctx.fillRect(panelX, panelY, panelW, panelH);
+  ctx.strokeStyle = '#0f3460';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(panelX, panelY, panelW, panelH);
+
+  ctx.fillStyle = '#e94560';
+  ctx.font = 'bold 14px Courier New';
+  ctx.fillText('HELP (? to close)', panelX + 12, panelY + 22);
+
+  ctx.font = '11px Courier New';
+  let y = panelY + 44;
+
+  ctx.fillStyle = '#FFD700';
+  ctx.fillText('— Keybindings —', panelX + 12, y);
+  y += 20;
+
+  const bindings = [
+    ['Arrow keys / hjkl', 'Move (4-directional)'],
+    ['yubn', 'Move (diagonal)'],
+    [', or g', 'Pick up item'],
+    ['> / <', 'Descend / Ascend stairs'],
+    ['.', 'Wait a turn'],
+    ['1 / 2 / 3', 'Use abilities'],
+    ['I', 'Inventory'],
+    ['?', 'This help screen'],
+  ];
+
+  for (const [key, desc] of bindings) {
+    ctx.fillStyle = '#4ea8de';
+    ctx.fillText(key, panelX + 16, y);
+    ctx.fillStyle = '#aaa';
+    ctx.fillText(desc, panelX + 160, y);
+    y += 18;
+  }
+
+  y += 10;
+  ctx.fillStyle = '#666';
+  ctx.font = '10px Courier New';
+  ctx.fillText('Press ? to close', panelX + 16, y);
+}
+
 // ── Input listener for inventory toggle ──────────────────────────────────────
 
 function handleRendererKey(e) {
   if (e.key === 'i' || e.key === 'I') {
     inventoryOpen = !inventoryOpen;
+  }
+  if (e.key === '?') {
+    helpOpen = !helpOpen;
   }
 }
 
@@ -886,6 +945,7 @@ export function render(state) {
   renderMinimap(state);
   renderMessages();
   renderInventory(state);
+  renderHelp();
 }
 
 /**
